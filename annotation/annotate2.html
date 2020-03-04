@@ -1,0 +1,225 @@
+<html>
+	<link rel="stylesheet" type="text/css" href="style2.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.71/jquery.csv-0.71.min.js"></script>
+
+	<body onLoad="">
+		<div class="main">
+			<div class = "input_pane" style="float:left"> 
+				<label class = "key">Comment ID: </label>
+				<label class = "value" id = "id">999999</label> 
+
+				<label class = "key" style="margin-left:7%">MET: </label>
+				<label class = "value" id = "MET">999999</label> 
+
+				<label class = "key" style="margin-left:5%">Non-MET: </label>
+				<label class = "value" id = "Non-MET">999999</label> 
+
+
+				<label class = "key" style="margin-left:5%">Total: </label>
+				<label class = "value" id = "Total">999999</label> 
+
+				<label class = "key" style="margin-left:7%">Index:</label>
+				<label class = "value" id = "index">999999</label> 
+
+				<br><br>
+
+				<div class = "message" id="text">Message</div> 
+			</div>
+
+			<div class = "output_pane" style="float:left">				
+				
+				<div class="radio-toolbar">
+					<p>Navigate:</p>
+					<button type="button" id="Back">Back</button>	
+					<button type="button" id="Next">Next</button>	
+					<br>
+
+					<select id="goto"></select>
+					<button type="button" id="Go">Go</button>	
+
+					<hr>
+
+					<p>Primary Annotations:</p>
+					<input type="radio" id="radioMET" name="radioFruit" value="MET">
+					<label for="radioMET">MET</label>
+
+					<input type="radio" id="radioNon_MET" name="radioFruit" value="Non MET">
+					<label for="radioNon_MET">Non MET</label>
+
+					<p>Secondary Annotations:</p>
+					<input type="radio" id="radioAlturism" name="radioAlturism" value="Help">
+					<label for="radioAlturism">Alturism</label>
+
+					<input type="radio" id="radioHope" name="radioHope" value="Skip">
+					<label for="radioHope">Hope</label>		
+
+					<br>
+
+					<input type="radio" id="radioGoodAdvice" name="radioGoodAdvice" value="Help">
+					<label for="radioGoodAdvice">Good Advice</label>
+
+					<input type="radio" id="radioBadAdvice" name="radioBadAdvice" value="Skip">
+					<label for="radioBadAdvice">Bad Advice</label>	
+
+					<br>
+
+					<input type="radio" id="radioUniversality" name="radioUniversality" value="Help">
+					<label for="radioUniversality">Universality</label>
+
+					<!--input type="radio" id="radioSkip" name="radioFruit" value="Skip">
+					<label for="radioSkip">Skip</label!-->	
+
+
+				</div>
+
+			</div>
+
+
+		</div>
+		
+
+		<script type="text/javascript">
+			Number.prototype.pad = function(size) {
+			    var s = String(this);
+			    while (s.length < (size || 2)) {s = "0" + s;}
+			    return s;
+			}
+
+			$.postJSON = function(url, data, callback) {
+			    return jQuery.ajax({
+			        'type': 'POST',
+			        'url': url,
+			        'contentType': 'application/json',
+			        'data': JSON.stringify(data),
+			        'dataType': 'json',
+			        'success': callback
+			    });
+			};
+
+			$('input').click(function(){
+				 $.postJSON("http://localhost:5000/annotate",
+				  {
+				    tag : this.id
+				  },
+				  function(data, status){
+				  	$('#text').text(data.Comment);
+	    			$('#id').text(data.Comment_ID);
+	    			$('#index').text(data.index);
+	    			updateRadio(data);
+	    		}, "json");
+			  	this.checked = false;
+			});		
+
+			$.get("http://localhost:5000/next", function(data, status){
+	    			$('#text').text(data.Comment);
+	    			$('#id').text(data.Comment_ID);
+	    			$('#index').text(data.index.pad(4));
+	    			updateRadio(data)	    
+	    			update_counts(data)	    			
+	  			});
+
+			$.get("http://localhost:5000/max_records", function(data, status){
+	    			for (i = 0; i < data.max_records; i++){
+	    				$('#goto').append('<option value='+ i +'>' + i +'</option>')
+	    			}	    			
+	  			});
+
+			function updateRadio(record) {
+				if (record['Is_MET'] == 1){
+					document.getElementById("radioMET").checked = true;
+					document.getElementById("radioNon_MET").checked = false;					
+				}
+				else if (record['Is_MET'] == 0){
+					document.getElementById("radioMET").checked = false;
+					document.getElementById("radioNon_MET").checked = true;
+				} else {
+					document.getElementById("radioMET").checked = false;
+					document.getElementById("radioNon_MET").checked = false;
+				}					
+
+				if (record['Alturism'] == 1)
+					document.getElementById("radioAlturism").checked = true;
+				else 
+					document.getElementById("radioAlturism").checked = false;
+
+				if (record['Hope'] == 1)
+					document.getElementById("radioHope").checked = true;
+				else
+					document.getElementById("radioHope").checked = false;
+				
+				if (record['Bad_Advice'] == 1)
+					document.getElementById("radioBadAdvice").checked = true;
+				else
+					document.getElementById("radioBadAdvice").checked = false;
+
+				if (record['Good_Advice'] == 1)
+					document.getElementById("radioGoodAdvice").checked = true;
+				else
+					document.getElementById("radioGoodAdvice").checked = false;
+
+				if (record['Universality'] == 1)
+					document.getElementById("radioUniversality").checked = true;
+				else
+					document.getElementById("radioUniversality").checked = false;
+
+			}
+
+
+			function update_counts(record) {
+				total = 0
+				if ('1' in record['counts']){
+					$('#MET').text(record['counts'][1].pad(4));
+					total += record['counts'][1]
+				}
+	    		else
+	    			$('#MET').text('0'.pad(4)); 
+
+	    		if ('0' in record['counts']){
+					$('#Non-MET').text(record['counts'][0].pad(4));
+					total += record['counts'][0]
+	    		}
+	    		else
+	    			$('#Non-MET').text('0'.pad(4)); 
+
+	    		$('#Total').text(total.pad(4));
+			}
+
+			$('#Next').click(function(){
+				$.get("http://localhost:5000/next", function(data, status){
+	    			$('#text').text(data.Comment);
+	    			$('#id').text(data.Comment_ID);
+	    			$('#index').text(data.index.pad(4));
+	    			updateRadio(data)	    
+	    			update_counts(data)			
+	  			});
+			});
+
+			$('#Back').click(function(){
+				$.get("http://localhost:5000/prev", function(data, status){
+	    			$('#text').text(data.Comment);
+	    			$('#id').text(data.Comment_ID);
+	    			$('#index').text(data.index.pad(4));
+	    			updateRadio(data)	    			
+	  			});
+			});
+
+			$('#Go').click(function(){
+				 $.postJSON("http://localhost:5000/goto",
+				  {
+				    index: $('#goto').val(),
+				  },
+				  function(data, status){
+				  	$('#text').text(data.Comment);
+	    			$('#id').text(data.Comment_ID);
+	    			$('#index').text(data.index.pad(4));
+	    			updateRadio(data);
+				  }, "json");
+				 this.checked = false;
+			});
+
+
+		</script>
+	</body>
+</html>
+		
