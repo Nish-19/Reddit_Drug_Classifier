@@ -88,7 +88,7 @@ def get_data(tokenizer, MAX_LENGTH):
 	# for i, s in enumerate(sequences):
 	# 	sequences[i] = sequences[i][-250:]
 
-	X = pad_sequences(sequences, maxlen=250)
+	X = pad_sequences(sequences, maxlen=MAX_LENGTH)
 	Y = np.array(Y)
 	return X, Y	
 
