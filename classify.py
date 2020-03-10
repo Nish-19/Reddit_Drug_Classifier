@@ -20,12 +20,13 @@ from classifiers import get_multichannel_cnn_model, get_simple_rnn_model, get_ls
 def get_tokenizer(vocabulary_size):
 	print('Training tokenizer...')
 	# train tokenizer
-	all_tweets = 'embeddings_train.txt'
+	all_tweets = ['data/embeddings_train01.txt', 'data/embeddings_train01.txt']
 	tokenizer = Tokenizer(num_words= vocabulary_size)
 	tweet_text = []
-	with io.open(all_tweets) as infile:	
-		for line in infile:
-			tweet_text.append(line.strip())
+	for file_path in all_tweets:
+		with io.open(file_path) as infile:	
+			for line in infile:
+				tweet_text.append(line.strip())
 	print('Read {} tweets'.format(len(tweet_text)))
 	tokenizer.fit_on_texts(tweet_text)
 	return tokenizer
