@@ -105,7 +105,7 @@
 				  function(data, status){
 				  	$('#text').text(data.Comment);
 	    			$('#id').text(data.Comment_ID);
-	    			$('#index').text(data.index);
+	    			$('#index').text(data.index.pad(4));
 	    			updateRadio(data);
 	    		}, "json");
 			  	this.checked = false;

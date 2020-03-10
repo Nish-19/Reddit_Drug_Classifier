@@ -53,7 +53,7 @@ def get_next():
 	result = data.loc[record_index, ['Comment_ID', 'Is_MET', 'Alturism', 'Hope', 'Good_Advice', 'Bad_Advice', 'Universality', 'Comment']].to_dict()
 	result['index'] = record_index
 	result['counts'] = get_counts()
-	app.logger.info(result)
+	# app.logger.info(result)
 	return jsonify(clean(result))
 
 @app.route('/prev', methods=['GET'])
@@ -65,7 +65,7 @@ def get_prev():
 	result = data.loc[record_index, ['Comment_ID', 'Is_MET', 'Alturism', 'Hope', 'Good_Advice', 'Bad_Advice', 'Universality', 'Comment']].to_dict()
 	result['index'] = record_index
 	result['counts'] = get_counts()
-	app.logger.info(result)
+	# app.logger.info(result)
 	return jsonify(clean(result))
 
 
@@ -88,11 +88,12 @@ def get_record():
 		result = data.loc[record_index, ['Comment_ID', 'Is_MET', 'Alturism', 'Hope', 'Good_Advice', 'Bad_Advice', 'Universality', 'Comment']].to_dict()
 		result['index'] = record_index
 		result['counts'] = get_counts()
-		app.logger.info(result)
+		# app.logger.info(result)
 	else :
 		abort(400)
 
 	return jsonify(clean(result)), 200	
+
 
 
 @app.route('/annotate', methods=['POST'])
@@ -100,24 +101,32 @@ def get_record():
 def annotate():
 	global record_index, data, annotation_counter
 	column_dict = {}
-	column_dict['radioMET'] = {'column' : 'Is_MET', 'value' : 1}
-	column_dict['radioNon_MET'] = {'column' : 'Is_MET', 'value' : 0}
+	column_dict['radioMET'] = {'column' : 'Is_MET', 'value' : 1, 'reset' : -1}
+	column_dict['radioNon_MET'] = {'column' : 'Is_MET', 'value' : 0, 'reset' : -1}
 
-	column_dict['radioAlturism'] = {'column' : 'Alturism', 'value' : 1}
-	column_dict['radioHope'] = {'column' : 'Hope', 'value' : 1}
-	column_dict['radioGoodAdvice'] = {'column' : 'Good_Advice', 'value' : 1}
-	column_dict['radioBadAdvice'] = {'column' : 'Bad_Advice', 'value' : 1}
-	column_dict['radioUniversality'] = {'column' : 'Universality', 'value' : 1}
+	column_dict['radioAlturism'] = {'column' : 'Alturism', 'value' : 1, 'reset' : 0}
+	column_dict['radioHope'] = {'column' : 'Hope', 'value' : 1, 'reset' : 0}
+	column_dict['radioGoodAdvice'] = {'column' : 'Good_Advice', 'value' : 1, 'reset' : 0}
+	column_dict['radioBadAdvice'] = {'column' : 'Bad_Advice', 'value' : 1, 'reset' : 0}
+	column_dict['radioUniversality'] = {'column' : 'Universality', 'value' : 1, 'reset' : 0}
 
 	picked = column_dict[request.json['tag']]
 	column = picked['column']
 	value = picked['value']
 	
-	data.at[record_index, column] = value	
+	if data.loc[record_index, column] == value:
+		# reset
+		data.at[record_index, column] = picked['reset']
+		value = picked['reset']
+	else:	
+		data.at[record_index, column] = value	
+
+
+
+	app.logger.info('Row {}, Column {} to {}'.format(record_index, column, value))
 	result = data.loc[record_index, ['Comment_ID', 'Is_MET', 'Alturism', 'Hope', 'Good_Advice', 'Bad_Advice', 'Universality', 'Comment']].to_dict()
 	result['index'] = record_index
-	app.logger.info('Row {}, Column {} to {}'.format(record_index, column, value))
-	app.logger.info(result)
+	# app.logger.info(result)
 
 	annotation_counter += 1
 	if annotation_counter == 10:
