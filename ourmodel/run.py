@@ -24,4 +24,4 @@ if __name__ == '__main__':
 	logger.info("Annotation path " + args.annotations + ' embeddings path ' + args.embeddings)
 
 	# TODO : use arguments from user instead manually passing here
-	#handler = DataHandler(args.annotations, args.embeddings)
+	handler = DataHandler(args.annotations, args.embeddings)
