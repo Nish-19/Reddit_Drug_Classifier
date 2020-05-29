@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
 	# read ml data
 	X, Y = get_data(tokenizer, MAX_LENGTH)
-	encoder = LabelBinarizer()
+	encoder = LabelBinarizer()#convertes into one hot form
 	encoder.fit(Y)
 	Y_enc = encoder.transform(Y)
 

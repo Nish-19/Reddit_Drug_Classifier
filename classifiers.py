@@ -13,7 +13,7 @@ from keras import backend as K
 def get_multichannel_cnn_model(embedding_matrix, MAX_LENGTH):
     print('Getting Text CNN model...')
     filter_sizes = [2, 3, 5]
-    num_filters = 128
+    num_filters = 128	#Hyperparameters 32,64,128; 0.2,0.3,0.4
     drop = 0.4
 
     MAX_NB_WORDS = embedding_matrix.shape[0]
@@ -46,7 +46,7 @@ def get_simple_rnn_model(embedding_matrix, MAX_LENGTH):
     print('Getting RNN model...')
     MAX_NB_WORDS = embedding_matrix.shape[0]
     embedding_dim = embedding_matrix.shape[1]
-    
+    #Check the documentation
     inp = Input(shape=(MAX_LENGTH, ))
     x = Embedding(input_dim=MAX_NB_WORDS, output_dim=embedding_dim, input_length=MAX_LENGTH, weights=[embedding_matrix], trainable=True)(inp)
     x = SpatialDropout1D(0.3)(x)
@@ -208,7 +208,7 @@ def get_model_lstm_atten(embedding_matrix, MAX_LENGTH):
     print('Getting Attention model...')
     MAX_NB_WORDS = embedding_matrix.shape[0]
     embedding_dim = embedding_matrix.shape[1]
-
+    #Hyperparameters change
     inp = Input(shape=(MAX_LENGTH, ))
     x = Embedding(input_dim=MAX_NB_WORDS, output_dim=embedding_dim, input_length=MAX_LENGTH, weights=[embedding_matrix], trainable=True)(inp)
     x = Bidirectional(CuDNNLSTM(128, return_sequences=True))(x)
