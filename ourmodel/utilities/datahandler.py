@@ -5,6 +5,7 @@
 import numpy as np
 import logging, io
 from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
 
 # Helper class to process all the necessary text files and embeddings saved disk. 
 # Use these to generate embedding matrix and tokenizer
@@ -21,17 +22,17 @@ class DataHandler:
 		annotated_rows = self.__get_annotated_index()
 
 		self.logger.info("Reading annotated comments")
-		comments = self.__read_columns_from_annotation([7], filter_rows = annotated_rows, data_type = np.str)
+		self.__comments = self.__read_columns_from_annotation([7], filter_rows = annotated_rows, data_type = np.str)
 		
 		self.logger.info("Reading met annotations")
-		is_met = self.__read_columns_from_annotation([1], filter_rows = annotated_rows, data_type = np.int)
+		self.__is_met = self.__read_columns_from_annotation([1], filter_rows = annotated_rows, data_type = np.int)
 
 		self.logger.info("Reading sub-annotations")
-		is_alturism = self.__read_columns_from_annotation([2], filter_rows = annotated_rows, data_type = np.int)
-		is_hope = self.__read_columns_from_annotation([3], filter_rows = annotated_rows, data_type = np.int)
-		is_good_advice = self.__read_columns_from_annotation([4], filter_rows = annotated_rows, data_type = np.int)
-		is_bad_advice = self.__read_columns_from_annotation([5], filter_rows = annotated_rows, data_type = np.int)
-		is_universality = self.__read_columns_from_annotation([6], filter_rows = annotated_rows, data_type = np.int)
+		self.__is_alturism = self.__read_columns_from_annotation([2], filter_rows = annotated_rows, data_type = np.int)
+		self.__is_hope = self.__read_columns_from_annotation([3], filter_rows = annotated_rows, data_type = np.int)
+		self.__is_good_advice = self.__read_columns_from_annotation([4], filter_rows = annotated_rows, data_type = np.int)
+		self.__is_bad_advice = self.__read_columns_from_annotation([5], filter_rows = annotated_rows, data_type = np.int)
+		self.__is_universality = self.__read_columns_from_annotation([6], filter_rows = annotated_rows, data_type = np.int)
 
 		
 		# read embeddings
@@ -41,7 +42,7 @@ class DataHandler:
 		# fit tokenizer
 		self.logger.info("Training the tokenizer on comments")
 		vocabulary_size = len(embeddings_index)
-		self.tokenizer = self.__fit_tokenizer(comments, vocabulary_size) 
+		self.__tokenizer = self.__fit_tokenizer(self.__comments, vocabulary_size) 
 
 
 		# generate embedding matrix
@@ -118,8 +119,8 @@ class DataHandler:
 		
 		embedding_matrix = np.zeros((vocabulary_size, embeddinds_size))
 		considered = 0
-		total = len(self.tokenizer.word_index.items())
-		for word, index in self.tokenizer.word_index.items():
+		total = len(self.__tokenizer.word_index.items())
+		for word, index in self.__tokenizer.word_index.items():
 			if index > vocabulary_size - 1:
 				continue
 			else:
@@ -129,3 +130,44 @@ class DataHandler:
 					considered += 1
 		self.logger.debug("Considered %d word and ignored %d words" % (considered, total - considered))		
 		return embedding_matrix
+
+	# -------------------------------------------------------------------------------------------- #
+	#                                      public methods                                          #
+	# -------------------------------------------------------------------------------------------- #
+	
+	def get_tokenized_comments(self, max_input_sequence_length):
+		self.logger.debug("Fetching tokenized comments")
+		sequences = self.__tokenizer.texts_to_sequences(self.__comments)
+		tokenized_comments = pad_sequences(sequences, maxlen = max_input_sequence_length)
+		self.logger.debug("Returning tokenized comments with %s rows and %s columns" % (tokenized_comments.shape[0], tokenized_comments.shape[1]))
+		return tokenized_comments
+
+
+	def get_met_annotations(self):
+		self.logger.debug("Returning MET annotations with %s rows" % (self.__is_met.shape[0]))
+		return self.__is_met	
+
+
+	def get_alturism_annotations(self):
+		self.logger.debug("Returning alturism annotations with %s rows" % (self.__is_alturism.shape[0]))
+		return self.__is_alturism
+
+
+	def get_hope_annotations(self):
+		self.logger.debug("Returning hope annotations with %s rows" % (self.__is_hope.shape[0]))
+		return self.__is_hope	
+
+
+	def get_good_advice_annotations(self):
+		self.logger.debug("Returning good-advice annotations with %s rows" % (self.__is_good_advice.shape[0]))
+		return self.__is_good_advice	
+
+
+	def get_bad_advice_annotations(self):
+		self.logger.debug("Returning bad-advice annotations with %s rows" % (self.__is_bad_advice.shape[0]))
+		return self.__is_bad_advice
+
+
+	def get_universality_annotations(self):
+		self.logger.debug("Returning universality annotations with %s rows" % (self.__is_universality.shape[0]))
+		return self.__is_universality
