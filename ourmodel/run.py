@@ -1,13 +1,13 @@
 from utilities.datahandler import DataHandler
 import logging
+import logging.config
 import argparse
 
 if __name__ == '__main__':
-	# setup the logger
-	logging.basicConfig(level=logging.INFO)
-	
-	# instantiate data handler
+	log_level = logging.INFO
+	logging.basicConfig(level=log_level)
 	logger = logging.getLogger("Runner")
+	logger.setLevel(log_level)
 
 	parser = argparse.ArgumentParser(description = 'input processing')
 	parser.add_argument('-a', dest = 'annotations_file', type = str,
@@ -24,7 +24,7 @@ if __name__ == '__main__':
 	logger.debug("Embeddings path = %s" % (args.embeddings_file))
 	logger.debug("Max input sequence length = %s" % (args.max_input_sequence_length))
 
-
+	# instantiate data handler
 	logger.info("Instantiating data handler")
 	handler = DataHandler(args.annotations_file, args.embeddings_file)
 
